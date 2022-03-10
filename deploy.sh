@@ -20,9 +20,10 @@ curl -s https://install.zerotier.com | sudo bash
 sudo systemctl stop nginx
 
 # Copy config over
-sudo chown -R root:root config/nginx
-sudo chmod -R 644 config/nginx
-sudo cp -a -r config/nginx/. /etc/nginx/
+sudo cp -r config/nginx/. /etc/nginx/
+sudo chown -R root:root /etc/nginx
+sudo find /etc/nginx -type d -exec chmod 755 {} \;
+sudo find /etc/nginx -type f -exec chmod 644 {} \;
 sudo nginx -t
 
 # Copy website source
