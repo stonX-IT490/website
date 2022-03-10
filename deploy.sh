@@ -22,12 +22,12 @@ sudo systemctl stop nginx
 # Copy config over
 sudo chown -R root:root config/nginx
 sudo chmod -R 644 config/nginx
-sudo cp -a config/nginx/. /etc/nginx/
+sudo cp -a -r config/nginx/. /etc/nginx/
 sudo nginx -t
 
 # Copy website source
 sudo rm -rf root /var/www/html/*
-sudo cp src/. /var/www/html/
+sudo cp -r src/. /var/www/html/
 sudo chown -R www-data:www-data /var/www/html
 sudo find /var/www/html -type d -exec chmod 755 {} \;
 sudo find /var/www/html -type f -exec chmod 644 {} \;
