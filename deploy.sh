@@ -10,7 +10,15 @@ sudo apt full-upgrade -y
 sudo apt autoremove -y --purge
 
 # Install required packages
-sudo apt install -y php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-readline nginx
+sudo apt install -y ufw php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-readline nginx
+
+# Setup firewall
+sudo ufw --force enable
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
 
 # Install zerotier
 sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
@@ -35,3 +43,4 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 
 # Start nginx
 sudo systemctl start nginx
+
