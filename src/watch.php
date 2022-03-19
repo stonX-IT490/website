@@ -54,7 +54,7 @@ $total_pages = ceil($total / $per_page);
 $offset = ($page - 1) * $per_page;
 
 $stmt = $db->prepare(
-  "SELECT *
+  "SELECT *, Watching.id AS watch_id
   FROM Watching
   JOIN Stocks ON Stocks.symbol = Watching.symbol
   JOIN Stock_Data ON Stock_Data.symbol = Watching.symbol
@@ -95,7 +95,7 @@ ob_end_flush();
         </td>
         <td>
           <form method="post">
-            <button class="btn btn-danger" name="unwatch" value="<?php safer_echo($r["id"]); ?>">Unwatch</button>
+            <button class="btn btn-danger" name="unwatch" value="<?php safer_echo($r["watch_id"]); ?>">Unwatch</button>
           </form>
         </td>
       </tr>
