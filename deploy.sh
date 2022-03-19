@@ -43,4 +43,3 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 
 # Start nginx
 sudo systemctl start nginx
-
