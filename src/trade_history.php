@@ -64,7 +64,7 @@ ob_end_flush();
       <tr>  
         <th scope="col">Created</th>
         <th scope="col">Security</th>
-        <th scope="col">Shares</th>
+        <th scope="col">Traded Shares</th>
         <th scope="col">Amount</th>
         <th scope="col">Held Shares</th>
       </tr>
@@ -75,7 +75,7 @@ ob_end_flush();
         <th scope="row"><?php safer_echo($r["created"]); ?></th>
         <td><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
         <td><?php safer_echo($r["shares"]); ?></td>
-        <td>$<?php safer_echo($r["amount"]); ?></td>
+        <td>$<?php safer_echo($r["amount"]); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
         <td><?php safer_echo($r["expected_shares"]); ?></td>
       </tr>
   <?php endforeach; ?>
