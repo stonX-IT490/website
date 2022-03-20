@@ -10,7 +10,7 @@ sudo apt full-upgrade -y
 sudo apt autoremove -y --purge
 
 # Install required packages
-sudo apt install -y ufw php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-gmp php-zip nginx wget unzip
+sudo apt install -y ufw php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-gmp php-zip nginx wget unzip entr
 
 # Setup firewall
 sudo ufw --force enable
@@ -49,3 +49,7 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 
 # Start nginx
 sudo systemctl start nginx
+
+# Copy logs to logCentral
+sudo mkdir /var/logCentral
+sudo cp -rf /var/log/* /var/logCentral
