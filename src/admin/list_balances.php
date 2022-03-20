@@ -58,7 +58,7 @@ ob_end_flush();
 <center>
   <div class="card" style="width: 18rem;">
     <div class="card-body">
-      <h5 class="card-title text-center"><?php safer_echo($balanceData['total']); ?></h5>
+      <h5 class="card-title text-center">$<?php safer_echo($balanceData['total']); ?></h5>
       <p class="card-text text-center">As of <?php safer_echo($balanceData['date']); ?></p>
     </div>
   </div>

@@ -17,7 +17,7 @@ if (isset($_GET["type"])) {
 $user = get_user_id();
 $db = getDB();
 
-// Get user accounts
+// Get stocks
 $r = $db->query(
   "SELECT *
   FROM Stock_Data
@@ -34,45 +34,25 @@ if (isset($_GET["symbol"])) {
 }
 
 if (isset($_POST["save"])) {
-  $balance = $_POST["balance"];
-  $memo = $_POST["memo"];
-  
-  if($type == 'deposit') {
-    $account = $_POST["account"];
-    $r = changeBalance($db, 1, $account, 'deposit', $balance, $memo);
-  }
-  if($type == 'withdraw')  {
-    $account = $_POST["account"];
-    $stmt = $db->prepare('SELECT balance FROM Accounts WHERE id = :id');
-    $stmt->execute([':id' => $account]);
-    $acct = $stmt->fetch(PDO::FETCH_ASSOC);
-    if($acct["balance"] < $balance) {
-      flash("Not enough funds to withdraw!");
-      die(header("Location: transaction.php?type=withdraw"));
+  $shares = $_POST["shares"];
+  if ($shares) {
+    $symbol = $_POST["security"];
+
+    if($type == 'buy') {
+      $r = tradeShare($db, $user, 'buy', $symbol, $shares);
     }
-    $r = changeBalance($db, $account, 1, 'withdraw', $balance, $memo);
-  }
-  if($type == 'transfer')  {
-    $account_src = $_POST["account_src"];
-    $account_dest = $_POST["account_dest"];
-    if($account_src == $account_dest){
-      flash("Cannot transfer to same account!");
-      die(header("Location: transaction.php?type=transfer"));
+
+    if($type == 'sell') {
+      $r = tradeShare($db, $user, 'sell', $symbol, $shares);
     }
-    $stmt = $db->prepare('SELECT balance FROM Accounts WHERE id = :id');
-    $stmt->execute([':id' => $account_src]);
-    $acct = $stmt->fetch(PDO::FETCH_ASSOC);
-    if($acct["balance"] < $balance) {
-      flash("Not enough funds to transfer!");
-      die(header("Location: transaction.php?type=transfer"));
+    
+    if (!$r || !$r['error']) {
+      flash("Successfully executed transaction.");
+    } else {
+      flash("Error doing transaction: " . $r['msg']);
     }
-    $r = changeBalance($db, $account_src, $account_dest, 'transfer', $balance, $memo);
-  }
-  
-  if ($r) {
-    flash("Successfully executed transaction.");
   } else {
-    flash("Error doing transaction!");
+    flash("Please enter the amount of shares.");
   }
 }
 ob_end_flush();
@@ -88,24 +68,22 @@ ob_end_flush();
 <?php if (count($results) > 0): ?>
   <form method="POST">
     <div class="form-group">
-      <label for="account">Security</label>
-      <select class="form-control" id="account" name="security">
+      <label for="security">Security</label>
+      <select class="form-control" id="security" name="security">
         <?php foreach ($results as $r): ?>
-        <?php if ($r["account_type"] != "loan"): ?>
-        <option value="<?php safer_echo($r["id"]); ?>" <?php echo $symbol == $r["symbol"] ? 'selected' : ''; ?>>
+        <option value="<?php safer_echo($r["symbol"]); ?>" <?php echo $symbol == $r["symbol"] ? 'selected' : ''; ?>>
           <?php safer_echo($r["symbol"]); ?> | <?php safer_echo($r["company_name"]); ?> | <?php safer_echo($r["value"]); ?> (As of <?php safer_echo($r["created"]); ?>)
         </option>
-        <?php endif; ?>
         <?php endforeach; ?>
       </select>
     </div>
     <div class="form-group">
-      <label for="deposit">Amount</label>
+      <label for="shares">Amount</label>
       <div class="input-group">
         <div class="input-group-prepend">
           <span class="input-group-text">Shares</span>
         </div>
-        <input type="number" class="form-control" id="deposit" min="1" name="balance" step="1" placeholder="1"/>
+        <input type="number" class="form-control" id="shares" min="1" name="shares" step="1" placeholder=""/>
       </div>
     </div>
     <button type="submit" name="save" value="Do Transaction" class="btn btn-success">Do Transaction</button>

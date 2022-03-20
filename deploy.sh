@@ -10,7 +10,7 @@ sudo apt full-upgrade -y
 sudo apt autoremove -y --purge
 
 # Install required packages
-sudo apt install -y ufw php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-readline php-gmp php-zip nginx wget unzip
+sudo apt install -y ufw php-amqp php-bcmath php-cli php-common php-curl php-fpm php-json php-mbstring php-mysql php-readline php-opcache php-gmp php-zip nginx wget unzip
 
 # Setup firewall
 sudo ufw --force enable

@@ -126,4 +126,139 @@ function changeBalance($db, $user, $balChange) {
   return $transactions;
 }
 
+function tradeShare($db, $user, $type, $symbol, $shareChange) {
+  $shareChange = abs($shareChange);
+
+  // Get latest stock value
+  $stmt = $db->prepare("SELECT id, value FROM Stock_Data WHERE created = (SELECT max(created) FROM Stock_Data WHERE symbol = :symbol) AND symbol = :symbol");
+  $r = $stmt->execute([":symbol" => $symbol]);
+  if( $r ) {
+    $currentData = $stmt->fetch(PDO::FETCH_ASSOC);
+  } else {
+    return [ 'error' => true, 'msg' => 'SQL ERROR' ];
+  }
+
+  // Currently Held Shares
+  $stmt = $db->prepare("SELECT held_shares from Portfolio WHERE user_id = :id AND symbol = :symbol");
+  $r = $stmt->execute([":id" => $user, ":symbol" => $symbol]);
+  if( $r ) {
+    $currentHeldShares = $stmt->fetch(PDO::FETCH_ASSOC);
+  } else {
+    return [ 'error' => true, 'msg' => 'SQL ERROR' ];
+  }
+
+  // Check user balance
+  $stmt = $db->prepare("SELECT amount from Balance WHERE user_id = :id");
+  $r = $stmt->execute([":id" => $user]);
+  if( $r ) {
+    $currentBal = $stmt->fetch(PDO::FETCH_ASSOC)['amount'];
+  } else {
+    return [ 'error' => true, 'msg' => 'SQL ERROR' ];
+  }
+
+  $stockValue = $shareChange * $currentData['value'];
+
+  // Check if user can buy shares
+  if ( $stockValue > $currentBal && $type == 'buy' ) {
+    return [ 'error' => true, 'msg' => 'Not enough funds to buy shares.' ];
+  }
+
+  // Prepared Statements
+  $trade = $db->prepare(
+    "INSERT INTO Trade (user_id, symbol, shares, expected_shares, stock_data_id)
+    VALUES (:id, :symbol, :shares, :expected_shares, :stock_data_id)"
+  );
+  $transactions = $db->prepare(
+    "INSERT INTO Transactions (user_id, amount, expected_balance)
+    VALUES (:id, :amount, :expected_balance)"
+  );
+  $balance = $db->prepare(
+    "UPDATE Balance SET amount = :balance WHERE user_id = :id"
+  );
+  if ( $type == 'buy' && !$currentHeldShares ) {
+    $portfolio = $db->prepare(
+      "INSERT INTO Portfolio(user_id, symbol, last_trade_id, initial_trade_id, initial_shares, held_shares)
+      VALUES (:id, :symbol, :trade_id, :trade_id, :shares, :shares)"
+    );
+  } else {
+    $portfolio = $db->prepare(
+      "UPDATE Portfolio SET last_trade_id = :trade_id, held_shares = :shares WHERE user_id = :id AND symbol = :symbol"
+    );
+  }
+
+  if ( $type == 'buy' ) {
+    $r = $trade->execute([
+      ":id" => $user,
+      ":symbol" => $symbol,
+      ":shares" => $shareChange,
+      ":expected_shares" => !$currentHeldShares ? $shareChange : $currentHeldShares['held_shares'] + $shareChange,
+      ":stock_data_id" => $currentData['id'],
+    ]);
+    if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+    $tradeId = $db->lastInsertId();
+    $r = $portfolio->execute([
+      ":id" => $user,
+      ":symbol" => $symbol,
+      ":trade_id" => $tradeId,
+      ":shares" => !$currentHeldShares ? $shareChange : $currentHeldShares['held_shares'] + $shareChange
+    ]);
+    if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+    $r = $transactions->execute([
+      ":id" => $user,
+      ":amount" => -$stockValue,
+      ":expected_balance" => $currentBal - $stockValue
+    ]);
+    if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+    $r = $balance->execute([
+      ":id" => $user,
+      ":balance" => $currentBal - $stockValue
+    ]);
+    if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+  }
+
+  if ( $type == 'sell' ) {
+    if ( !$currentHeldShares ) {
+      return [ 'error' => true, 'msg' => 'Cannot sell shares of a security not owned.' ];
+    } else {
+    // Check if user can sell shares
+      $currentHeldShares = $currentHeldShares['held_shares'];
+      if ( $currentHeldShares == 0 && $type == 'sell') {
+        return [ 'error' => true, 'msg' => 'Cannot sell shares of a security not owned.' ];
+      }
+      if ( $shareChange > $currentHeldShares && $type == 'sell' ) {
+        return [ 'error' => true, 'msg' => 'Cannot sell more shares can currently owned.' ];
+      }
+      $r = $trade->execute([
+        ":id" => $user,
+        ":symbol" => $symbol,
+        ":shares" => -$shareChange,
+        ":expected_shares" => $currentHeldShares - $shareChange,
+        ":stock_data_id" => $currentData['id'],
+      ]);
+      if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+      $tradeId = $db->lastInsertId();
+      $r = $portfolio->execute([
+        ":id" => $user,
+        ":symbol" => $symbol,
+        ":trade_id" => $tradeId,
+        ":shares" => $currentHeldShares - $shareChange
+      ]);
+      if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+      $r = $transactions->execute([
+        ":id" => $user,
+        ":amount" => $stockValue,
+        ":expected_balance" => $currentBal + $stockValue
+      ]);
+      if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+      $r = $balance->execute([
+        ":id" => $user,
+        ":balance" => $currentBal + $stockValue
+      ]);
+      if( !$r ) { return [ 'error' => true, 'msg' => 'SQL ERROR' ]; }
+    }
+  }
+
+  return [ 'error' => false, 'msg' => NULL ];
+}
+
 ?>
