@@ -33,7 +33,9 @@ composer update
 # RabbitMQ
 cd src/lib/
 git clone https://github.com/stonX-IT490/rabbitmq-common.git
+git clone https://github.com/stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
 cp ../../config.php rabbitmq-common/
+cp ../../config.webDmzHost.php rabbitmq-webDmzHost/config.php
 cd ../../
 
 # Stop nginx

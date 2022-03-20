@@ -22,6 +22,7 @@
 </form>
 
 <?php
+require_once __DIR__ . "/lib/rabbitmq-common/rabbitMQLib.php";
 if (isset($_POST["login"])) {
   $email = null;
   $password = null;

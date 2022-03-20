@@ -1,5 +1,6 @@
 <?php
 ob_start();
+require_once __DIR__ . "/../lib/rabbitmq-common/rabbitMQLib.php";
 require_once __DIR__ . "/../partials/nav.php";
 if (!has_role("Admin")) {
   //this will redirect to login and kill the rest of this script (prevent it from executing)

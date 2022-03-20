@@ -1,4 +1,6 @@
 <?php
+ob_start();
+require_once __DIR__ . "/lib/rabbitmq-common/rabbitMQLib.php";
 require_once __DIR__ . "/partials/nav.php";
 if (isset($_POST["register"])) {
   $email = null;
@@ -59,6 +61,7 @@ if (!isset($email)) {
 if (!isset($username)) {
   $username = "";
 }
+ob_end_flush();
 ?>
 <h3 class="text-center mt-4">Register</h3>
 

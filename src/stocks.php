@@ -1,5 +1,6 @@
 <?php
 ob_start();
+require_once __DIR__ . "/lib/rabbitmq-common/rabbitMQLib.php";
 require_once __DIR__ . "/partials/nav.php";
 if (!is_logged_in()) {
   //this will redirect to login and kill the rest of this script (prevent it from executing)
@@ -57,6 +58,7 @@ ob_end_flush();
           <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-primary">Details</a>
           <a href="<?php echo getURL('trade.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-success">Trade</a>
           <a href="<?php echo getURL('watch.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-warning">Watch</a>
+          <a href="<?php echo getURL('news.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-info">News</a>
         </td>
       </tr>
   <?php endforeach; ?>
