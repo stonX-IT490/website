@@ -10,6 +10,29 @@ if (!is_logged_in()) {
 
 $user = get_user_id();
 
+if (isset($_POST['push'])) {
+  $id = $_POST['watch_id'];
+  $greaterOrLower = (int)$_POST['greaterOrLower'];
+  $amount = $_POST['amount'];
+  $client = new rabbitMQProducer('amq.direct', 'webserver');
+  $response = $client->send_request([
+    'type' => 'watchPush',
+    'user_id' => $user,
+    'id' => $id,
+    'greaterOrLower' => $greaterOrLower,
+    'amount' => $amount
+  ]);
+  
+  if(!$response) {
+    flash("Something went wrong, please try again.");
+  } else if (isset($response['error']) && $response['error']) {
+    flash($response['msg']);
+  } else {
+    flash("Added to push notification list.");
+  }
+  die(header("Location: watch.php"));
+}
+
 if (isset($_REQUEST['symbol'])) {
   $symbol = $_REQUEST['symbol'];
   $client = new rabbitMQProducer('amq.direct', 'webserver');
@@ -86,6 +109,7 @@ ob_end_flush();
         <th scope="col">Share Value</th>
         <th></th>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -102,6 +126,9 @@ ob_end_flush();
           <form method="post">
             <button class="btn btn-danger" name="unwatch" value="<?php safer_echo($r["watch_id"]); ?>">Unwatch</button>
           </form>
+        </td>
+        <td>
+          <button type="button" class="btn btn-warning" onclick="modal(<?php safer_echo($r['watch_id']); ?>, '<?php safer_echo($r["symbol"]); ?>')">Email Push</button>
         </td>
       </tr>
     <?php endforeach; ?>
@@ -124,5 +151,24 @@ ob_end_flush();
 <?php else: ?>
   <h4 class="text-center">Watchlist is empty.</h3>
 <?php endif; ?>
+
+<div class="modal fade" id="pushModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+    </div>
+  </div>
+</div>
+
+<script>
+function modal(id, symbol) {
+  var myModalInstance = new BSN.Modal(
+    '#pushModal', // target selector
+    { // options object
+      content: `<div class="modal-header"><h5 class="modal-title" id="exampleModalLabel">${symbol} - Add Email Push Notification</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"><form method="POST"><input type="hidden" name="watch_id" value="${id}"><div class="form-group"><label for="option">Greater or Lower</label><select class="form-control" id="option" name="greaterOrLower"><option value="0">Greater Than</option><option value="1">Less Than</option></select></div><div class="form-group"><label for="shares">Amount</label><div class="input-group"><div class="input-group-prepend"><span class="input-group-text">$</span></div><input type="number" class="form-control" id="shares" min="0.01" name="amount" step="0.01" placeholder=""/></div></div><button type="submit" name="push" value="do" class="btn btn-success">Add</button></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button></div>`,
+    }
+  ).show();
+}
+</script>
 
 <?php require __DIR__ . "/partials/flash.php"; ?>
