@@ -42,36 +42,16 @@ if (isset($_POST["login"])) {
     flash("Invalid email");
   }
   if ($isValid) {
-    $db = getDB();
-    if (isset($db)) {
-      $stmt = $db->prepare(
-        "SELECT id, email, password, first_name, last_name, admin from Users WHERE email = :email LIMIT 1"
-      );
-
-      $params = [":email" => $email];
-      $r = $stmt->execute($params);
-      //echo "db returned: " . var_export($r, true);
-      $e = $stmt->errorInfo();
-      if ($e[0] != "00000") {
-        //echo "uh oh something went wrong: " . var_export($e, true);
-        flash("Something went wrong, please try again");
-      }
-      $result = $stmt->fetch(PDO::FETCH_ASSOC);
-      if ($result && isset($result["password"])) {
-        $password_hash_from_db = $result["password"];
-        if (password_verify($password, $password_hash_from_db)) {
-          unset($result["password"]); //remove password so we don't leak it beyond this page
-          //let's create a session for our user based on the other data we pulled from the table
-          $_SESSION["user"] = $result; //we can save the entire result array since we removed password
-          //on successful login let's serve-side redirect the user to the home page.
-          flash("Log in successful");
-          die(header("Location: home.php"));
-        } else {
-          flash("Invalid password");
-        }
-      } else {
-        flash("Invalid user");
-      }
+    $client = new rabbitMQProducer('amq.direct', 'webserver');
+    $response = $client->send_request([ 'type' => 'login', 'email' => $email, 'password' => $password ]);
+    if(!$response) {
+      flash("Something went wrong, please try again");
+    } elseif ($response['error']) {
+      flash($response['msg']);
+    } else {
+      $_SESSION["user"] = $response;
+      flash("Log in successful");
+      die(header("Location: home.php"));
     }
   } else {
     flash("There was a validation issue");

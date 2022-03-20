@@ -7,16 +7,6 @@ if (!has_role("Admin")) {
   die(header("Location: ../login.php"));
 }
 
-$db = getDB();
-
-$r = $db->query("SELECT sum(amount) as total, MAX(last_updated) as date FROM Balance");
-if ($r) {
-  $balanceData = $r->fetch(PDO::FETCH_ASSOC);
-} else {
-  $balanceData = [];
-  flash("There was a problem fetching the results");
-}
-
 // Get Transactions
 if(isset($_GET["page"])){
   $page = (int)$_GET["page"];
@@ -24,30 +14,26 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$result = $db->query("SELECT count(*) as total FROM Transactions");
-if($result){
-  $total = (int)$result->fetch(PDO::FETCH_ASSOC)["total"];
-} else {
-  $total = 0;
-}
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getBalancesAdmin',
+  'page' =>  $page
+]);
 
-$per_page = 10;
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT created, amount, expected_balance
-  FROM Transactions
-  ORDER BY created DESC LIMIT :offset,:count"
-);
-$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
-$r = $stmt->execute();
-if ($r) {
-  $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
   $transactions = [];
-  flash("There was a problem fetching the results");
+  $balanceData = [];
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $transactions = [];
+  $balanceData = [];
+  $total_pages = 0;
+} else {
+  $transactions = $response['results'];
+  $balanceData = $response['data'];
+  $total_pages = $response['total_pages'];
 }
 
 ob_end_flush();

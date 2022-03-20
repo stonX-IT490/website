@@ -7,31 +7,44 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
 $user = get_user_id();
 
 if (isset($_REQUEST['symbol'])) {
   $symbol = $_REQUEST['symbol'];
-  $stmt = $db->prepare('INSERT INTO Watching(user_id, symbol) VALUES(:user_id, :symbol)');
-  $r = $stmt->execute([':user_id' => $user, ':symbol' => $symbol]);
-  if($r) {
-    flash("Added $symbol to your watch list.");
+  $client = new rabbitMQProducer('amq.direct', 'webserver');
+  $response = $client->send_request([
+    'type' => 'watchSymbol',
+    'user' => $user,
+    'symbol' =>  $symbol
+  ]);
+  
+  if(!$response) {
+    flash("Something went wrong, please try again.");
+  } else if (isset($response['error']) && $response['error']) {
+    flash($response['msg']);
   } else {
-    flash("An error occurred, please try again.");
+    flash("Added $symbol to your watch list.");
   }
+  die(header("Location: watch.php"));
 }
 
 if (isset($_POST['unwatch'])) {
   $id = $_POST['unwatch'];
-  $stmt = $db->prepare('DELETE FROM Watching WHERE id = :id');
-  $r = $stmt->execute([':id' => $id]);
-  if($r) {
-    flash("Removed from watch list.");
+  $client = new rabbitMQProducer('amq.direct', 'webserver');
+  $response = $client->send_request([
+    'type' => 'unwatchSymbol',
+    'id' => $id
+  ]);
+  
+  if(!$response) {
+    flash("Something went wrong, please try again.");
+  } else if (isset($response['error']) && $response['error']) {
+    flash($response['msg']);
   } else {
-    flash("An error occurred, please try again.");
+    flash("Removed from watch list.");
   }
+  die(header("Location: watch.php"));
 }
-
 
 // Get Stocks
 if(isset($_GET["page"])){
@@ -40,34 +53,24 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getWatchList',
+  'user' => $user,
+  'page' =>  $page
+]);
 
-$stmt = $db->query("SELECT count(*) as total FROM Watching");
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-if($result){
-  $total = (int)$result["total"];
-} else {
-  $total = 0;
-}
-
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT *, Watching.id AS watch_id
-  FROM Watching
-  JOIN Stocks ON Stocks.symbol = Watching.symbol
-  JOIN Stock_Data ON Stock_Data.symbol = Watching.symbol
-  WHERE (Watching.symbol, created) IN (SELECT symbol, max(created) FROM Stock_Data GROUP BY symbol)
-  AND user_id = :user_id
-  ORDER BY Watching.symbol ASC"
-);
-$r = $stmt->execute([':user_id' => $user]);
-if ($r) {
-  $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
   $transactions = [];
-  flash("There was a problem fetching the results");
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $transactions = [];
+  $total_pages = 0;
+} else {
+  $transactions = $response['results'];
+  $total_pages = $response['total_pages'];
 }
 
 ob_end_flush();

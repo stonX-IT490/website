@@ -7,24 +7,7 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
 $user = get_user_id();
-
-$stmt = $db->prepare(
-  "SELECT count(*) as total, max(Trade.created) as last
-  FROM Portfolio
-  JOIN Trade ON Trade.id = Portfolio.last_trade_id
-  WHERE Portfolio.user_id = :user_id AND held_shares != 0"
-);
-$r = $stmt->execute([':user_id' => $user]);
-if ($r) {
-  $data = $stmt->fetch(PDO::FETCH_ASSOC);
-  $total = (int)$data["total"];
-} else {
-  $data = [];
-  $total = 0;
-  flash("There was a problem fetching the results");
-}
 
 if(isset($_GET["page"])){
   $page = (int)$_GET["page"];
@@ -32,30 +15,27 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getPortfolio',
+  'user' =>  $user,
+  'page' => $page
+]);
 
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT *, Stock_Data.created AS updated, (Stock_Data.value * Portfolio.held_shares) AS totalValue
-  FROM Portfolio
-  JOIN Stocks ON Stocks.symbol = Portfolio.symbol
-  JOIN Stock_Data ON Stock_Data.symbol = Portfolio.symbol
-  WHERE user_id = :user_id
-  AND held_shares != 0
-  AND (Portfolio.symbol, Stock_Data.created) IN (SELECT symbol, max(created) FROM Stock_Data GROUP BY symbol)
-  ORDER BY totalValue DESC LIMIT :offset,:count"
-);
-$stmt->bindValue(":user_id", $user);
-$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
-$r = $stmt->execute();
-if ($r) {
-  $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
   $results = [];
-  flash("There was a problem fetching the results");
+  $data = [];
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $results = [];
+  $data = [];
+  $total_pages = 0;
+} else {
+  $results = $response['results'];
+  $data = $response['data'];
+  $total_pages = $response['total_pages'];
 }
 
 $sum = 0;
