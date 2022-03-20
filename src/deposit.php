@@ -25,8 +25,8 @@ if (isset($_POST["save"])) {
     $r = $stmt->execute([':id' => $user]);
     if ($r) {
       $sum = $stmt->fetch(PDO::FETCH_ASSOC)['sum'];
-      if( $sum + $balance > 5000 ) {
-        flash("Maximum $5,000 deposit per day!");
+      if( $sum + $balance > 500 ) {
+        flash("Maximum $500 deposit per day!");
       } else {
         $r = changeBalance($db, $user, $balance);
     

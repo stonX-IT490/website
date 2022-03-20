@@ -77,8 +77,8 @@ ob_end_flush();
   <?php foreach ($transactions as $r): ?>
       <tr>
         <th scope="row"><?php safer_echo($r["created"]); ?></th>
-        <td>$<?php safer_echo(abs($r["amount"])); ?></td>
-        <td>$<?php safer_echo(abs($r["expected_balance"])); ?></td>
+        <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?>$<?php safer_echo(abs($r["amount"])); ?></td>
+        <td>$<?php safer_echo($r["expected_balance"]); ?></td>
       </tr>
   <?php endforeach; ?>
     </tbody>

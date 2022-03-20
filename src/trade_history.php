@@ -74,8 +74,8 @@ ob_end_flush();
       <tr>
         <th scope="row"><?php safer_echo($r["created"]); ?></th>
         <td><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
-        <td><?php safer_echo($r["shares"]); ?></td>
-        <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : ''; ?>$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
+        <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?><?php safer_echo(abs($r["shares"])); ?><br><small>(<?php echo gmp_sign((int)$r["amount"]) == -1 ? 'Sell' : 'Buy'; ?>)</small></td>
+        <td>$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
         <td><?php safer_echo($r["expected_shares"]); ?></td>
       </tr>
   <?php endforeach; ?>
