@@ -30,6 +30,12 @@ sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 composer require php-amqplib/php-amqplib
 composer update
 
+# RabbitMQ
+cd src/lib/
+git clone https://github.com/stonX-IT490/rabbitmq-common.git
+cp ../../config.php rabbitmq-common/
+cd ../../
+
 # Stop nginx
 sudo systemctl stop nginx
 

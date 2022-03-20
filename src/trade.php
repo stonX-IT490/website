@@ -15,17 +15,51 @@ if (isset($_GET["type"])) {
 
 // init db
 $user = get_user_id();
-$db = getDB();
+
+if (isset($_POST["save"])) {
+  $shares = $_POST["shares"];
+  
+  if ($shares) {
+    $symbol = $_POST["security"];
+
+    $client = new rabbitMQProducer('amq.direct', 'webserver');
+    $response = $client->send_request([
+      'type' => 'tradeShare',
+      'user' => $user,
+      'trade_type' => $type,
+      'symbol' => $symbol,
+      'shares' => $shares
+    ]);
+    
+    if(!$response) {
+      flash("Something went wrong, please try again");
+    } else if (isset($response['error']) && $response['error']) {
+      flash($response['msg']);
+    } else {
+      flash("Successfully executed transaction.");
+    }
+  } else {
+    flash("Please enter the amount of shares.");
+  }
+
+  die(header("Location: trade.php"));
+}
 
 // Get stocks
-$r = $db->query(
-  "SELECT *
-  FROM Stock_Data
-  JOIN Stocks ON Stocks.symbol = Stock_Data.symbol
-  WHERE (Stock_Data.symbol, created) IN (SELECT symbol, max(created) FROM Stock_Data GROUP BY symbol)
-  ORDER BY Stock_Data.symbol ASC"
-);
-$results = $r->fetchAll(PDO::FETCH_ASSOC);
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getAllStocks'
+]);
+
+if(!$response) {
+  flash("Something went wrong, please try again");
+  $results = [];
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $results = [];
+} else {
+  $results = $response;
+}
 
 if (isset($_GET["symbol"])) {
   $symbol = $_GET["symbol"];
@@ -33,28 +67,6 @@ if (isset($_GET["symbol"])) {
   $symbol = '';
 }
 
-if (isset($_POST["save"])) {
-  $shares = $_POST["shares"];
-  if ($shares) {
-    $symbol = $_POST["security"];
-
-    if($type == 'buy') {
-      $r = tradeShare($db, $user, 'buy', $symbol, $shares);
-    }
-
-    if($type == 'sell') {
-      $r = tradeShare($db, $user, 'sell', $symbol, $shares);
-    }
-    
-    if (!$r || !$r['error']) {
-      flash("Successfully executed transaction.");
-    } else {
-      flash("Error doing transaction: " . $r['msg']);
-    }
-  } else {
-    flash("Please enter the amount of shares.");
-  }
-}
 ob_end_flush();
 ?>
 

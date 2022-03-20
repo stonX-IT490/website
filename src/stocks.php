@@ -7,7 +7,6 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
 $user = get_user_id();
 
 // Get Stocks
@@ -17,38 +16,30 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getStocks',
+  'page' =>  $page
+]);
 
-$stmt = $db->query("SELECT count(*) as total FROM Stocks");
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-if($result){
-  $total = (int)$result["total"];
+if(!$response) {
+  flash("Something went wrong, please try again");
+  $results = [];
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $results = [];
+  $total_pages = 0;
 } else {
-  $total = 0;
-}
-
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$r = $db->query(
-  "SELECT *
-  FROM Stock_Data
-  JOIN Stocks ON Stocks.symbol = Stock_Data.symbol
-  WHERE (Stock_Data.symbol, created) IN (SELECT symbol, max(created) FROM Stock_Data GROUP BY symbol)
-  ORDER BY Stock_Data.symbol ASC"
-);
-if ($r) {
-  $transactions = $r->fetchAll(PDO::FETCH_ASSOC);
-} else {
-  $transactions = [];
-  flash("There was a problem fetching the results");
+  $results = $response['results'];
+  $total_pages = $response['total_pages'];
 }
 
 ob_end_flush();
 ?>
 <h3 class="text-center mt-4 mb-4">Stocks</h3>
 
-<?php if (count($transactions) > 0): ?>
+<?php if (count($results) > 0): ?>
   <table class="table table-striped mt-4">
     <thead class="thead-dark">
       <tr>  
@@ -58,7 +49,7 @@ ob_end_flush();
       </tr>
     </thead>
     <tbody>
-  <?php foreach ($transactions as $r): ?>
+  <?php foreach ($results as $r): ?>
       <tr>
         <th scope="row"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
         <td>$<?php safer_echo(abs($r["value"])); ?><br><small>As of <?php safer_echo($r["created"]); ?></small></td>

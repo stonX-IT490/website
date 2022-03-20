@@ -7,7 +7,6 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
 $user = get_user_id();
 
 // Get Transactions
@@ -17,41 +16,24 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getTradeHistory',
+  'user' => $user,
+  'page' =>  $page
+]);
 
-$stmt = $db->prepare(
-  "SELECT count(*) as total
-  FROM Trade
-  WHERE user_id = :user_id"
-);
-$r = $stmt->execute([':user_id' => $user]);
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-if($result){
-  $total = (int)$result["total"];
-} else {
-  $total = 0;
-}
-
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT *,(shares * value) AS amount
-  FROM Trade
-  JOIN Stock_Data ON Stock_Data.id = Trade.stock_data_id
-  JOIN Stocks ON Stocks.symbol = Trade.symbol
-  WHERE user_id = :user_id
-  ORDER BY Trade.created DESC LIMIT :offset,:count"
-);
-$stmt->bindValue(":user_id", $user);
-$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
-$r = $stmt->execute();
-if ($r) {
-  $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
   $transactions = [];
-  flash("There was a problem fetching the results");
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $transactions = [];
+  $total_pages = 0;
+} else {
+  $transactions = $response['results'];
+  $total_pages = $response['total_pages'];
 }
 
 ob_end_flush();

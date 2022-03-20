@@ -7,9 +7,6 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
-$user = get_user_id();
-
 // Get Stocks
 $symbol = $_GET["symbol"];
 if (isset($_GET["time"])) {
@@ -27,20 +24,21 @@ if (isset($_GET["time"])) {
   $sqlTime = "24 hour";
 }
 
-$stmt = $db->prepare(
-  "SELECT *
-  FROM Stock_Data
-  JOIN Stocks ON Stocks.symbol = Stock_Data.symbol
-  WHERE Stock_Data.symbol = :symbol
-  AND created > now() - interval $sqlTime
-  ORDER BY created ASC"
-);
-$r = $stmt->execute([':symbol' => $symbol]);
-if ($r) {
-  $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getStockDetail',
+  'symbol' =>  $symbol,
+  'sql_time' => $sqlTime
+]);
+
+if(!$response) {
+  flash("Something went wrong, please try again");
   $result = [];
-  flash("There was a problem fetching the results");
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $result = [];
+} else {
+  $result = $response;
 }
 
 $data['labels'] = [];

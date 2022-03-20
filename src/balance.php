@@ -7,64 +7,35 @@ if (!is_logged_in()) {
   die(header("Location: login.php"));
 }
 
-$db = getDB();
 $user = get_user_id();
 
-// Get Balance
-$stmt = $db->prepare(
-  "SELECT amount, last_updated
-  FROM Balance
-  WHERE user_id = :q"
-);
-$r = $stmt->execute([":q" => $user]);
-if ($r) {
-  $balance = $stmt->fetch(PDO::FETCH_ASSOC);
-} else {
-  $balance = [];
-  flash("There was a problem fetching the results");
-}
-
-// Get Transactions
 if(isset($_GET["page"])){
   $page = (int)$_GET["page"];
 } else {
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getBalance',
+  'user' =>  $user,
+  'page' => $page
+]);
 
-$stmt = $db->prepare(
-  "SELECT count(*) as total
-  FROM Transactions
-  WHERE user_id = :q
-  ORDER BY created DESC"
-);
-$r = $stmt->execute([':q' => $user]);
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-if($result){
-  $total = (int)$result["total"];
-} else {
-  $total = 0;
-}
-
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT created, amount, expected_balance
-  FROM Transactions
-  WHERE user_id = :q
-  ORDER BY created DESC LIMIT :offset,:count"
-);
-$stmt->bindValue(":q", $user);
-$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
-$r = $stmt->execute();
-if ($r) {
-  $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
+  $balance = [];
   $transactions = [];
-  flash("There was a problem fetching the results");
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $balance = [];
+  $transactions = [];
+  $total_pages = 0 ;
+} else {
+  $balance = $response['balance'];
+  $transactions = $response['transactions'];
+  $total_pages = $response['total_pages'];
 }
 
 ob_end_flush();

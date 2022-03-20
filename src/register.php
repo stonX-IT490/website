@@ -32,40 +32,21 @@ if (isset($_POST["register"])) {
   }
   //TODO other validation as desired, remember this is the last line of defense
   if ($isValid) {
-    $hash = password_hash($password, PASSWORD_BCRYPT);
-
-    $db = getDB();
-    if (isset($db)) {
-      //here we'll use placeholders to let PDO map and sanitize our data
-      $stmt = $db->prepare(
-        "INSERT INTO Users(email, password, first_name, last_name) VALUES(:email, :password, :first_name, :last_name)"
-      );
-      //here's the data map for the parameter to data
-      $params = [
-        ":email" => $email,
-        ":password" => $hash,
-        ":first_name" => $first_name,
-        ":last_name" => $last_name
-      ];
-      $r = $stmt->execute($params);
-      $e = $stmt->errorInfo();
-      if ($e[0] == "00000") {
-        $stmt = $db->prepare('SELECT id FROM Users WHERE email = :email');
-        $r = $stmt->execute([':email' => $email]);
-        if($r) {
-          $id = $stmt->fetch(PDO::FETCH_ASSOC)['id'];
-          $stmt = $db->prepare('INSERT INTO Balance(user_id) VALUES(:user_id)');
-          $stmt->execute([':user_id' => $id]);
-        }
-        flash("Successfully registered! Please login.");
-      } else {
-        if ($e[0] == "23000") {
-          //code for duplicate entry
-          flash("Email already exists!");
-        } else {
-          flash("An error occurred, please try again.");
-        }
-      }
+    $client = new rabbitMQProducer('amq.direct', 'webserver');
+    $response = $client->send_request([
+      'type' => 'registerUser',
+      'email' => $email,
+      'password' => $password,
+      'first_name' => $first_name,
+      'last_name' => $last_name
+    ]);
+    
+    if(!$response) {
+      flash("Something went wrong, please try again");
+    } else if (isset($response['error']) && $response['error']) {
+      flash($response['msg']);
+    } else {
+      flash("Successfully registered! Please login.");
     }
   } else {
     flash("There was a validation issue.");

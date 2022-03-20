@@ -7,18 +7,6 @@ if (!has_role("Admin")) {
   die(header("Location: ../login.php"));
 }
 
-$db = getDB();
-
-$r = $db->query("SELECT count(*) as total, MAX(created) as date FROM Trade");
-if ($r) {
-  $tradesData = $r->fetch(PDO::FETCH_ASSOC);
-  $total = (int)$tradesData["total"];
-} else {
-  $tradesData = [];
-  $total = 0;
-  flash("There was a problem fetching the results");
-}
-
 // Get Transactions
 if(isset($_GET["page"])){
   $page = (int)$_GET["page"];
@@ -26,25 +14,28 @@ if(isset($_GET["page"])){
   $page = 1;
 }
 
-$per_page = 10;
+$client = new rabbitMQProducer('amq.direct', 'webserver');
+$response = $client->send_request([
+  'type' => 'getTradesAdmin',
+  'page' =>  $page
+]);
 
-$total_pages = ceil($total / $per_page);
-$offset = ($page - 1) * $per_page;
-
-$stmt = $db->prepare(
-  "SELECT id, created, symbol, shares, commission_id
-  FROM Trade
-  ORDER BY created DESC LIMIT :offset,:count"
-);
-$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
-$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
-$r = $stmt->execute();
-if ($r) {
-  $trades = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
+if(!$response) {
+  flash("Something went wrong, please try again");
   $trades = [];
-  flash("There was a problem fetching the results");
+  $tradesData = [];
+  $total_pages = 0;
+} else if (isset($response['error']) && $response['error']) {
+  flash($response['msg']);
+  $trades = [];
+  $tradesData = [];
+  $total_pages = 0;
+} else {
+  $trades = $response['results'];
+  $tradesData = $response['data'];
+  $total_pages = $response['total_pages'];
 }
+
 ob_end_flush();
 ?>
 
@@ -53,7 +44,7 @@ ob_end_flush();
 <center>
   <div class="card" style="width: 18rem;">
     <div class="card-body">
-      <h5 class="card-title text-center"><?php safer_echo($total); ?></h5>
+      <h5 class="card-title text-center"><?php safer_echo($tradesData["total"]); ?></h5>
       <p class="card-text text-center">As of <?php safer_echo($tradesData["date"]); ?></p>
     </div>
   </div>

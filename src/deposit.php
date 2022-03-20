@@ -9,35 +9,25 @@ if (!is_logged_in()) {
 
 // init db
 $user = get_user_id();
-$db = getDB();
 
 // Get user accounts
 if (isset($_POST["save"])) {
   $balance = abs($_POST["balance"]);
 
   if( $balance > 0 ) {
-    $stmt = $db->prepare(
-      "SELECT sum(amount) AS sum
-      FROM Transactions
-      WHERE created > now() - interval 24 hour
-      AND user_id = :id"
-    );
-    $r = $stmt->execute([':id' => $user]);
-    if ($r) {
-      $sum = $stmt->fetch(PDO::FETCH_ASSOC)['sum'];
-      if( $sum + $balance > 500 ) {
-        flash("Maximum $500 deposit per day!");
-      } else {
-        $r = changeBalance($db, $user, $balance);
+    $client = new rabbitMQProducer('amq.direct', 'webserver');
+    $response = $client->send_request([
+      'type' => 'changeBalance',
+      'user' =>  $user,
+      'balance' => $balance
+    ]);
     
-        if ($r) {
-          flash("Successfully executed transaction.");
-        } else {
-          flash("Error doing transaction!");
-        }
-      }
+    if(!$response) {
+      flash("Something went wrong, please try again");
+    } else if (isset($response['error']) && $response['error']) {
+      flash($response['msg']);
     } else {
-      flash("Error doing transaction!");
+      flash("Successfully executed transaction.");
     }
   } else {
     flash("Minimum deposit has to be greater than $0");
