@@ -24,12 +24,6 @@ sudo ufw default allow outgoing
 sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
 curl -s https://install.zerotier.com | sudo bash
 
-# Install Composer
-sudo wget -O composer-setup.php https://getcomposer.org/installer
-sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-composer require php-amqplib/php-amqplib
-composer update
-
 # RabbitMQ
 cd src/lib/
 git clone https://github.com/stonX-IT490/rabbitmq-common.git
@@ -58,6 +52,9 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 # Start nginx
 sudo systemctl start nginx
 
-# Copy logs to logCentral
-sudo mkdir /var/logCentral
-sudo cp -rf /var/log/* /var/logCentral
+# Setup Central Logging
+git clone https://github.com/stonX-IT490/logging.git ~/logging
+cd ~/logging
+chmod +x deploy.sh
+./deploy.sh
+cd ~/
