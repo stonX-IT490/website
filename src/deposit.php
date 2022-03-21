@@ -48,7 +48,7 @@ ob_end_flush();
       </div>
       <input type="number" class="form-control" id="deposit" min="0.00" name="balance" step="0.01" placeholder="0.00"/>
     </div>
-    <small id="depositHelp" class="form-text text-muted">Maximum $5,000 per day</small>
+    <small id="depositHelp" class="form-text text-muted">Maximum $500 per day</small>
   </div>
   <button type="submit" name="save" value="Do Transaction" class="btn btn-success">Do Transaction</button>
 </form>
