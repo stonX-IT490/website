@@ -26,8 +26,8 @@ curl -s https://install.zerotier.com | sudo bash
 
 # RabbitMQ
 cd src/lib/
-git clone https://github.com/stonX-IT490/rabbitmq-common.git
-git clone https://github.com/stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
+git clone git@github.com:stonX-IT490/rabbitmq-common.git
+git clone git@github.com:stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
 cp ../../config.php rabbitmq-common/
 cp ../../config.webDmzHost.php rabbitmq-webDmzHost/config.php
 cd ../../
@@ -53,7 +53,7 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 sudo systemctl start nginx
 
 # Setup Central Logging
-git clone https://github.com/stonX-IT490/logging.git ~/logging
+git clone git@github.com:stonX-IT490/logging.git ~/logging
 cd ~/logging
 chmod +x deploy.sh
 ./deploy.sh

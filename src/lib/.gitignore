@@ -1,3 +1,4 @@
 composer*
 vendor/
-rabbitmq-common/
+src/lib/rabbitmq-common/
+src/lib/rabbitmq-webDmzHost/
