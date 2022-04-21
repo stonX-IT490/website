@@ -36,8 +36,8 @@ cd ../../
 sudo systemctl stop nginx
 
 # Setup Self Signed Cert
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
-sudo openssl dhparam -out /etc/ssl/dhparam.pem 4096
+sudo openssl req -subj '/CN=stonX/OU=IT 490/O=NJIT/C=US' -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+sudo openssl dhparam -out /etc/ssl/dhparam.pem 2048
 
 # Copy config over
 sudo cp -r config/nginx/. /etc/nginx/
