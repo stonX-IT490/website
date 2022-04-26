@@ -58,7 +58,7 @@ sudo systemctl start nginx
 
 # Setup Central Logging
 git clone git@github.com:stonX-IT490/logging.git ~/logging
-cd ~/logging
+cd /home/webserver/logging
 chmod +x deploy.sh
 ./deploy.sh
-cd ~/
+cd /home/webserver/
