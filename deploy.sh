@@ -62,3 +62,6 @@ cd /home/webserver/logging
 chmod +x deploy.sh
 ./deploy.sh
 cd /home/webserver/
+
+# Reload systemd
+sudo systemctl daemon-reload
