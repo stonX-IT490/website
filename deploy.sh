@@ -27,7 +27,13 @@ curl -s https://install.zerotier.com | sudo bash
 # RabbitMQ
 cd src/lib/
 git clone git@github.com:stonX-IT490/rabbitmq-common.git
+cd rabbitmq-common
+./deploy.sh
+cd ..
 git clone git@github.com:stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
+cd rabbitmq-webDmzHost
+./deploy.sh
+cd ..
 cp ../../config.php rabbitmq-common/
 cp ../../config.webDmzHost.php rabbitmq-webDmzHost/config.php
 cd ../../
