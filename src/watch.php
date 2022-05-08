@@ -102,6 +102,7 @@ ob_end_flush();
 <h3 class="text-center mt-4 mb-4">Watchlist</h3>
 
 <?php if (count($transactions) > 0): ?>
+  <div class="table-responsive" id="no-more-tables">
   <table class="table table-striped mt-4">
     <thead class="thead-dark">
       <tr>  
@@ -115,8 +116,8 @@ ob_end_flush();
     <tbody>
     <?php foreach ($transactions as $r): ?>
       <tr>
-        <th scope="row"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
-        <td>$<?php safer_echo(abs($r["value"])); ?><br><small>As of <?php safer_echo($r["created"]); ?></small></td>
+        <th scope="row" data-title="Symbol"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
+        <td data-title="Value">$<?php safer_echo(abs($r["value"])); ?><br><small>As of <?php safer_echo($r["created"]); ?></small></td>
         <td>
           <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-primary">Details</a>
           <a href="<?php echo getURL('trade.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-success">Trade</a>
@@ -134,6 +135,7 @@ ob_end_flush();
     <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
 
   <nav>
     <ul class="pagination justify-content-center">

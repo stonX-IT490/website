@@ -58,6 +58,7 @@ ob_end_flush();
 </center>
 
 <?php if (count($results) > 0): ?>
+  <div class="table-responsive" id="no-more-tables">
   <table class="table table-striped mt-4">
     <thead class="thead-dark">
       <tr>  
@@ -70,9 +71,9 @@ ob_end_flush();
     <tbody>
     <?php foreach ($results as $r): ?>
       <tr>
-        <th scope="row"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
-        <td><?php safer_echo($r["held_shares"]); ?></td>
-        <td>$<?php safer_echo($r["totalValue"]); ?><br><small>As of <?php safer_echo($r["updated"]); ?></small></td>
+        <th scope="row" data-title="Symbol"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
+        <td data-title="Shares"><?php safer_echo($r["held_shares"]); ?></td>
+        <td data-title="Value">$<?php safer_echo($r["totalValue"]); ?><br><small>As of <?php safer_echo($r["updated"]); ?></small></td>
         <td>
           <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-primary">Details</a>
           <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-success">Trade</a>
@@ -81,7 +82,7 @@ ob_end_flush();
     <?php endforeach; ?>
     </tbody>
   </table>
-
+  </div>
   <nav>
     <ul class="pagination justify-content-center">
         <li class="page-item <?php echo ($page - 1) < 1 ? "disabled" : ""; ?>">
