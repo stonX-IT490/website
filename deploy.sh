@@ -27,7 +27,13 @@ curl -s https://install.zerotier.com | sudo bash
 # RabbitMQ
 cd src/lib/
 git clone git@github.com:stonX-IT490/rabbitmq-common.git
+cd rabbitmq-common
+./deploy.sh
+cd ..
 git clone git@github.com:stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
+cd rabbitmq-webDmzHost
+./deploy.sh
+cd ..
 cp ../../config.php rabbitmq-common/
 cp ../../config.webDmzHost.php rabbitmq-webDmzHost/config.php
 cd ../../
@@ -36,8 +42,8 @@ cd ../../
 sudo systemctl stop nginx
 
 # Setup Self Signed Cert
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
-sudo openssl dhparam -out /etc/nginx/dhparam.pem 4096
+sudo openssl req -subj '/CN=stonX/OU=IT 490/O=NJIT/C=US' -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+sudo openssl dhparam -out /etc/ssl/dhparam.pem 2048
 
 # Copy config over
 sudo cp -r config/nginx/. /etc/nginx/
@@ -58,7 +64,10 @@ sudo systemctl start nginx
 
 # Setup Central Logging
 git clone git@github.com:stonX-IT490/logging.git ~/logging
-cd ~/logging
+cd /home/webserver/logging
 chmod +x deploy.sh
 ./deploy.sh
-cd ~/
+cd /home/webserver/
+
+# Reload systemd
+sudo systemctl daemon-reload
