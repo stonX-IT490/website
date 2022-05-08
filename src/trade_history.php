@@ -42,6 +42,7 @@ ob_end_flush();
 <h3 class="text-center mt-4 mb-4">Trade History</h3>
 
 <?php if (count($transactions) > 0): ?>
+  <div class="table-responsive" id="no-more-tables">
   <table class="table table-striped mt-4">
     <thead class="thead-dark">
       <tr>  
@@ -55,15 +56,16 @@ ob_end_flush();
     <tbody>
   <?php foreach ($transactions as $r): ?>
       <tr>
-        <th scope="row"><?php safer_echo($r["created"]); ?></th>
-        <td><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
-        <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?><?php safer_echo(abs($r["shares"])); ?><br><small>(<?php echo gmp_sign((int)$r["amount"]) == -1 ? 'Sell' : 'Buy'; ?>)</small></td>
-        <td>$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
-        <td><?php safer_echo($r["expected_shares"]); ?></td>
+        <th scope="row" data-title="Created"><?php safer_echo($r["created"]); ?></th>
+        <td data-title="Security"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
+        <td data-title="Traded Shares"><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?><?php safer_echo(abs($r["shares"])); ?><br><small>(<?php echo gmp_sign((int)$r["amount"]) == -1 ? 'Sell' : 'Buy'; ?>)</small></td>
+        <td data-title="Amount">$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
+        <td data-title="Held Shares"><?php safer_echo($r["expected_shares"]); ?></td>
       </tr>
   <?php endforeach; ?>
     </tbody>
   </table>
+  </div>
 
   <nav>
     <ul class="pagination justify-content-center">
