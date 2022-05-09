@@ -87,11 +87,16 @@ cd ../../
 sudo systemctl stop nginx
 
 # Setup Self Signed Cert
-sudo openssl req -subj '/CN=stonX/OU=IT 490/O=NJIT/C=US' -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
-sudo openssl dhparam -out /etc/ssl/dhparam.pem 2048
+if [ $cluster != "prod" ]; then
+  sudo openssl req -subj '/CN=stonX/OU=IT 490/O=NJIT/C=US' -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+  sudo openssl dhparam -out /etc/ssl/dhparam.pem 2048
+fi
 
 # Copy config over
 sudo cp -r config/nginx/. /etc/nginx/
+if [ $cluster == "prod" ]; then
+  sudo cp -r config/nginx/site.prod.conf /etc/nginx/site.conf
+fi
 sudo chown -R root:root /etc/nginx
 sudo find /etc/nginx -type d -exec chmod 755 {} \;
 sudo find /etc/nginx -type f -exec chmod 644 {} \;
