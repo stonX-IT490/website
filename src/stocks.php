@@ -42,29 +42,29 @@ ob_end_flush();
 
 <?php if (count($results) > 0): ?>
   <div class="table-responsive" id="no-more-tables">
-  <table class="table table-striped mt-4">
-    <thead class="thead-dark">
-      <tr>  
-        <th scope="col">Symbol</th>
-        <th scope="col">Share Value</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-  <?php foreach ($results as $r): ?>
-      <tr>
-        <th scope="row" data-title="Symbol"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
-        <td data-title="Share Value">$<?php safer_echo(abs($r["value"])); ?><br><small>As of <?php safer_echo($r["created"]); ?></small></td>
-        <td>
-          <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-primary">Details</a>
-          <a href="<?php echo getURL('trade.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-success">Trade</a>
-          <a href="<?php echo getURL('watch.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-warning">Watch</a>
-          <a href="<?php echo getURL('news.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-info">News</a>
-        </td>
-      </tr>
-  <?php endforeach; ?>
-    </tbody>
-  </table>
+    <table class="table table-striped mt-4">
+      <thead class="thead-dark">
+        <tr>  
+          <th scope="col">Symbol</th>
+          <th scope="col">Share Value</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($results as $r): ?>
+        <tr>
+          <th scope="row" data-title="Symbol"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></th>
+          <td data-title="Share Value">$<?php safer_echo(abs($r["value"])); ?><br><small>As of <?php safer_echo($r["created"]); ?></small></td>
+          <td>
+            <a href="<?php echo getURL('stock_detail.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-primary">Details</a>
+            <a href="<?php echo getURL('trade.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-success">Trade</a>
+            <a href="<?php echo getURL('watch.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-warning">Watch</a>
+            <a href="<?php echo getURL('news.php'); ?>?symbol=<?php safer_echo($r["symbol"]); ?>" class="btn btn-info">News</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
   <nav>
     <ul class="pagination justify-content-center">

@@ -43,28 +43,28 @@ ob_end_flush();
 
 <?php if (count($transactions) > 0): ?>
   <div class="table-responsive" id="no-more-tables">
-  <table class="table table-striped mt-4">
-    <thead class="thead-dark">
-      <tr>  
-        <th scope="col">Created</th>
-        <th scope="col">Security</th>
-        <th scope="col">Traded Shares</th>
-        <th scope="col">Amount</th>
-        <th scope="col">Held Shares</th>
-      </tr>
-    </thead>
-    <tbody>
-  <?php foreach ($transactions as $r): ?>
-      <tr>
-        <th scope="row" data-title="Created"><?php safer_echo($r["created"]); ?></th>
-        <td data-title="Security"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
-        <td data-title="Traded Shares"><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?><?php safer_echo(abs($r["shares"])); ?><br><small>(<?php echo gmp_sign((int)$r["amount"]) == -1 ? 'Sell' : 'Buy'; ?>)</small></td>
-        <td data-title="Amount">$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
-        <td data-title="Held Shares"><?php safer_echo($r["expected_shares"]); ?></td>
-      </tr>
-  <?php endforeach; ?>
-    </tbody>
-  </table>
+    <table class="table table-striped mt-4">
+      <thead class="thead-dark">
+        <tr>  
+          <th scope="col">Created</th>
+          <th scope="col">Security</th>
+          <th scope="col">Traded Shares</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Held Shares</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($transactions as $r): ?>
+        <tr>
+          <th scope="row" data-title="Created"><?php safer_echo($r["created"]); ?></th>
+          <td data-title="Security"><?php safer_echo($r["symbol"]); ?><br><small><?php safer_echo($r["company_name"]); ?></small></td>
+          <td data-title="Traded Shares"><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?><?php safer_echo(abs($r["shares"])); ?><br><small>(<?php echo gmp_sign((int)$r["amount"]) == -1 ? 'Sell' : 'Buy'; ?>)</small></td>
+          <td data-title="Amount">$<?php safer_echo(abs($r["amount"])); ?><br><small>($<?php safer_echo($r["value"]); ?> per share)</small></td>
+          <td data-title="Held Shares"><?php safer_echo($r["expected_shares"]); ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
 
   <nav>

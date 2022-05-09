@@ -52,26 +52,28 @@ ob_end_flush();
 </center>
 
 <?php if (count($trades) > 0): ?>
-  <table class="table table-striped mt-4">
-    <thead class="thead-dark">
-      <tr>  
-        <th scope="col">Created</th>
-        <th scope="col">Symbol</th>
-        <th scope="col">Shares</th>
-        <th scope="col">Commission</th>
-      </tr>
-    </thead>
-    <tbody>
-    <?php foreach ($trades as $r): ?>
-      <tr>
-        <th scope="row"><?php safer_echo($r["created"]); ?></th>
-        <td><?php safer_echo($r["symbol"]); ?></td>
-        <td><?php safer_echo($r["shares"]); ?></td>
-        <td><?php echo ( $r["commission_id"] == NULL ? '0%' : '' ); ?></td>
-      </tr>
-    <?php endforeach; ?>
-    </tbody>
-  </table>
+  <div class="table-responsive" id="no-more-tables">
+    <table class="table table-striped mt-4">
+      <thead class="thead-dark">
+        <tr>  
+          <th scope="col">Created</th>
+          <th scope="col">Symbol</th>
+          <th scope="col">Shares</th>
+          <th scope="col">Commission</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($trades as $r): ?>
+        <tr>
+          <th scope="row"><?php safer_echo($r["created"]); ?></th>
+          <td><?php safer_echo($r["symbol"]); ?></td>
+          <td><?php safer_echo($r["shares"]); ?></td>
+          <td><?php echo ( $r["commission_id"] == NULL ? '0%' : '' ); ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
 
   <nav>
     <ul class="pagination justify-content-center">
