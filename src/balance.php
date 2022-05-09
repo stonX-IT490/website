@@ -56,24 +56,26 @@ ob_end_flush();
 <?php endif; ?>
 
 <?php if (count($transactions) > 0): ?>
-  <table class="table table-striped mt-4">
-    <thead class="thead-dark">
-      <tr>  
-        <th scope="col">Created</th>
-        <th scope="col">Amount</th>
-        <th scope="col">Balance</th>
-      </tr>
-    </thead>
-    <tbody>
-  <?php foreach ($transactions as $r): ?>
-      <tr>
-        <th scope="row"><?php safer_echo($r["created"]); ?></th>
-        <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?>$<?php safer_echo(abs($r["amount"])); ?></td>
-        <td>$<?php safer_echo($r["expected_balance"]); ?></td>
-      </tr>
-  <?php endforeach; ?>
-    </tbody>
-  </table>
+  <div class="table-responsive" id="no-more-tables">
+    <table class="table table-striped mt-4">
+      <thead class="thead-dark">
+        <tr>  
+          <th scope="col">Created</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($transactions as $r): ?>
+        <tr>
+          <th scope="row"><?php safer_echo($r["created"]); ?></th>
+          <td><?php echo gmp_sign((int)$r["amount"]) == -1 ? '-' : '+'; ?>$<?php safer_echo(abs($r["amount"])); ?></td>
+          <td>$<?php safer_echo($r["expected_balance"]); ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
 
   <nav>
     <ul class="pagination justify-content-center">
