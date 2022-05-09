@@ -1,5 +1,17 @@
 #!/bin/bash
 
+read -p "Which cluster? (prod, qa, dev) " cluster
+
+rabbit_ip="10.4.90.102"
+
+if [ $cluster == "qa" ]; then
+  rabbit_ip="10.4.90.152"
+fi
+
+if [ $cluster == "prod" ]; then
+  rabbit_ip="10.4.90.52"
+fi
+
 # Update repos
 sudo apt update
 
@@ -34,8 +46,33 @@ git clone git@github.com:stonX-IT490/rabbitmq-common.git rabbitmq-webDmzHost
 cd rabbitmq-webDmzHost
 ./deploy.sh
 cd ..
-cp ../../config.php rabbitmq-common/
-cp ../../config.webDmzHost.php rabbitmq-webDmzHost/config.php
+
+rabbitWebHost="<?php
+
+\$config = [
+  'host' =>'$rabbit_ip',
+  'port' => 5672,
+  'username' => 'webserver',
+  'password' => 'stonx_websrv',
+  'vhost' => 'webHost'
+];
+
+?>"
+
+rabbitWebDmzHost="<?php
+
+\$config = [
+  'host' => '$rabbit_ip',
+  'port' => 5672,
+  'username' => 'webserver',
+  'password' => 'stonx_websrv',
+  'vhost' => 'webDmzHost'
+];
+
+?>"
+
+echo "$rabbitWebHost" > rabbitmq-common/config.php
+echo "$rabbitWebDmzHost" > rabbitmq-webDmzHost/config.php
 cd ../../
 
 # Stop nginx
