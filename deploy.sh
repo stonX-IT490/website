@@ -2,14 +2,22 @@
 
 read -p "Which cluster? (prod, qa, dev) " cluster
 
-rabbit_ip="10.4.90.102"
+rabbit_ip="broker"
+check=$( getent hosts | grep -e broker )
 
-if [ $cluster == "qa" ]; then
-  rabbit_ip="10.4.90.152"
-fi
+if [ -z check ]; then
+  if [ $cluster == "dev" ]; then
+    echo "10.4.90.102 broker" | sudo tee -a /etc/hosts
+  fi
 
-if [ $cluster == "prod" ]; then
-  rabbit_ip="10.4.90.52"
+  if [ $cluster == "qa" ]; then
+    echo "10.4.90.152 broker" | sudo tee -a /etc/hosts
+  fi
+
+  if [ $cluster == "prod" ]; then
+    echo "10.4.90.52 broker" | sudo tee -a /etc/hosts
+    echo "10.4.90.62 broker" | sudo tee -a /etc/hosts
+  fi
 fi
 
 # Update repos
